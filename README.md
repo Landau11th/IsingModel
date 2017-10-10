@@ -6,4 +6,6 @@ This project focuses on general Ising model.
 
 
 
-For openmp: do remember to compile with -fopenmp
+For openmp
+- do remember to compile with -fopenmp
+- TDM-GCC by default does not include openmp! Remember to check
