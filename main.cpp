@@ -116,13 +116,24 @@ void Comd_Line_Args::Treat_single_option(const std::string option_flag, const st
 	//should be realized in exception and catch. Will revise later.
 	if (option_flag == "-h")
 	{
-		std::cout << "help content" << std::endl;
+		std::cout << "Must give following parameters" << std::endl;
+		std::cout << "--gridsize=X*Y" << std::endl;
+		std::cout << "--samplingsize=X" << std::endl;
+		std::cout << "--threads=X" << std::endl;
+		std::cout << "--kBT=A~B,X" << std::endl;
+		std::cout << "where X, Y are positive integer, A, B are positive double" << std::endl;
+		std::cout << "Example of 5 by 5 lattice, temperature varies from 1.5 to 2.5 divided to 1000 parts, using 4 threads and 100000 samples:" << std::endl;
+		std::cout << "--gridsize=5*5 --kBT=1.5~2.5,1000 --threads=4 --samplingsize=100000" << std::endl;
 		//terminate();
 		opt_status["-h"] = false;
 	}
 }
 bool Comd_Line_Args::Start_Rest()
 {
+	if(!opt_status["-h"])
+    {
+        return false;
+    }
 	for (auto iter = opt_status.begin(); iter != opt_status.end(); ++iter)
 	{
 		//if some status is false
@@ -156,7 +167,7 @@ int main(int argc, char *argv[])
     assert(args.num_threads>0 && args.num_threads<=omp_get_max_threads() && "# of Threads out of range!\n" );
 
     //create output file name with time stamp, to avoid being covered
-    std::string filename = "Ising Stats ";
+    std::string filename = "stats ";
     {
         time_t t = time(0);   // get time now
         struct tm * now = localtime( & t );
