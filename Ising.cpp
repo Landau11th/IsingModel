@@ -112,6 +112,7 @@ double Ising_2D::Calc_Single_Site_Energy(int i, int j)
     for(unsigned int count_neighbour = 0; count_neighbour < N_neighbour; ++count_neighbour)
     {
         E += _J * sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
+        //E += sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
     }
 
     return E;
