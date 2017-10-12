@@ -46,15 +46,15 @@ Ising_2D::Ising_2D(unsigned int width, unsigned int height, double kBT_over_J, D
     RandNum_pt = RNG_pt;
 
     sites = new Site_2D*[height];
-    for(unsigned int i = 0; i < _height; ++i)
+    for(int i = 0; i < _height; ++i)
     {
-        sites[i] = new Site_2D[width];
+        sites[i] = new Site_2D[_width];
     }
 }
 Ising_2D::~Ising_2D()
 {
     //we do not release RandNum_pt here because the lifetime of the RNG could be independent with our Ising model
-    for(unsigned int i = 0; i < _height; ++i)
+    for(int i = 0; i < _height; ++i)
     {
         delete[] sites[i];
     }

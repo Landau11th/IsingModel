@@ -30,8 +30,8 @@ namespace Deng
             class Ising_2D
             {
             protected:
-                unsigned int _width;//size of the network
-                unsigned int _height;//size of the network
+                int _width;//size of the network
+                int _height;//size of the network
                 double _kBT_over_J;//temperature scaled by interaction
                 double _J = 1.0;//This quantity is useless since we are doing dimensionless calculation
                 //But we still put it here in case for further modification

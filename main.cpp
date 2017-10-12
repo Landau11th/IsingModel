@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cassert>
 #include <cmath>
+#include <fstream>
 
 //to process arguments from command line
 #include <vector>
@@ -23,7 +24,7 @@ class Comd_Line_Args
 {
 public:
 	//for OpenMP
-	unsigned int num_threads = 2;
+	unsigned int num_threads;
 	//Monte Carlo sampling size
 	unsigned long int num_samples;//long long int is definitely enough
 	//Specs of Ising model
@@ -45,9 +46,9 @@ private:
 Comd_Line_Args::Comd_Line_Args()
 {
 	opt_status["--gridsize="] = false;
-	//opt_status["--kBT="] = false;
+	opt_status["--kBT="] = false;
 	opt_status["--samplingsize="] = false;
-	//opt_status["--threads="] = false;
+	opt_status["--threads="] = false;
 
 	//-h is special
 	opt_status["-h"] = true;
@@ -96,6 +97,18 @@ void Comd_Line_Args::Treat_single_option(const std::string option_flag, const st
 	{
 		num_samples = std::stoi(option_value);
 	}
+	else if (option_flag == "--threads=")
+    {
+        num_threads = std::stoi(option_value);
+    }
+    else if (option_flag == "--kBT=")
+    {
+        size_t pos1 = option_value.find('~');
+        size_t pos2 = option_value.find(',');
+        kBT_over_J_min = std::stod(option_value.substr(0, pos1));
+        kBT_over_J_max = std::stod(option_value.substr(pos1+1, pos2-pos1));
+        num_kBT = std::stoi(option_value.substr(pos2+1));
+    }
 
 	opt_status[option_flag] = true;
 
@@ -141,6 +154,27 @@ int main(int argc, char *argv[])
 
 
     assert(args.num_threads>0 && args.num_threads<=omp_get_max_threads() && "# of Threads out of range!\n" );
+
+    //create output file name with time stamp, to avoid being covered
+    std::string filename = "Ising Stats ";
+    {
+        time_t t = time(0);   // get time now
+        struct tm * now = localtime( & t );
+        char buffer[80];
+        strftime(buffer,80,"%Y%m%d-%H%M%S",now);
+        filename = filename+buffer+".dat";
+    }
+    //write important parameters at the beginning of the file
+    std::ofstream outputfile;
+    outputfile.open(filename);
+    assert(outputfile.is_open() && "File not open!");
+    outputfile << "# of threads used: " << args.num_threads << std::endl;
+    outputfile << "# of samplings: " << args.num_samples << std::endl;
+    outputfile << "gridsize: " << args.grid_width << "*" << args.grid_height << std::endl;
+    outputfile << "Scaled T varies from " << args.kBT_over_J_min << " to " << args.kBT_over_J_max << ", divided to " << args.num_kBT << " parts" << std::endl << std::endl;
+
+
+
 
     //random seed, will be modified later for all threads
     int seed = time(nullptr);
@@ -227,7 +261,11 @@ int main(int argc, char *argv[])
             moment_4th_all_threads[id][count_kBT] = moment_4th;
         }
     }
+    std::cout << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl;
+    outputfile << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl << std::endl;
 
+    //output to file
+    outputfile << "scaled T, " << "average Energy, " << "specific heat, " << std::endl;
     double moment_1st, moment_2nd, moment_4th;
     const double total_sites = args.num_samples * args.grid_width * args.grid_height;
     for(unsigned int count_kBT = 0; count_kBT <= args.num_kBT; ++count_kBT)
@@ -245,12 +283,12 @@ int main(int argc, char *argv[])
         moment_2nd = moment_2nd - moment_1st*moment_1st;
         moment_4th = moment_4th/pow(total_sites, 4.0);
 
-        std::cout << args.kBT_over_J_min + count_kBT*(args.kBT_over_J_max - args.kBT_over_J_min)/args.num_kBT << ", " << moment_1st << ", " << moment_2nd << std::endl;
+        outputfile << args.kBT_over_J_min + count_kBT*(args.kBT_over_J_max - args.kBT_over_J_min)/args.num_kBT << ", " << moment_1st << ", " << moment_2nd << std::endl;
     }
     //2.269185314213 for square lattice
 
+    std::cout << "Statistics costs" << omp_get_wtime() - start_time << "s" << std::endl;
 
-    std::cout << omp_get_wtime() - start_time << std::endl;
 
     return 0;
 }
