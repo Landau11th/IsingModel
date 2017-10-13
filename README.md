@@ -11,3 +11,6 @@ For openmp
 - TDM-GCC by default does not include openmp! Remember to check
 - If the Compiler Flag Options is empty (Code::Blocks), delete the xml in AppData\C::B\share\....\....\compiler
 - Add a Flag with -fopenmp, and add libgomp*.dll as link library
+
+To do
+- Scales poorly. Need to figure out the reason. cache line issue of member function? Or use lambda expression?
