@@ -54,7 +54,8 @@ namespace Deng
             protected:
                 //kernel of above function
                 //I choose to hide it since we don't really have the chance to use it explicitly. could also be public
-                virtual double Calc_Single_Site_Energy(int i, int j);
+                virtual double Calc_One_Site_Single_Site_Energy(int i, int j);
+                virtual double Calc_One_Site_2_Sites_Interaction(int i, int j);
 
             public:
                 //Flip returns the energy change

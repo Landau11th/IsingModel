@@ -95,13 +95,12 @@ void Ising_2D::Calc_Total_Energy()
     {
         for(int j = 0; j < _width; ++j)
         {
-            _energy += Calc_Single_Site_Energy(i, j);
+            _energy += Calc_One_Site_Single_Site_Energy(i, j);
+            _energy += 0.5*Calc_One_Site_2_Sites_Interaction(i,j);
         }
     }
-
-    _energy = _energy/2.0;
 }
-double Ising_2D::Calc_Single_Site_Energy(int i, int j)
+double Ising_2D::Calc_One_Site_2_Sites_Interaction(int i, int j)
 {
     double E = 0.0;
 
@@ -111,11 +110,15 @@ double Ising_2D::Calc_Single_Site_Energy(int i, int j)
 
     for(unsigned int count_neighbour = 0; count_neighbour < N_neighbour; ++count_neighbour)
     {
-        E += _J * sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
-        //E += sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
+        E += -_J * sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
+        //E += -sites[i][j].spin * sites[sites[i][j].neighbour[count_neighbour][0]][sites[i][j].neighbour[count_neighbour][1]].spin;
     }
 
     return E;
+}
+double Ising_2D::Calc_One_Site_Single_Site_Energy(int i, int j)
+{
+    return 0.0;
 }
 void Ising_2D::Flip()
 {
@@ -137,11 +140,11 @@ void Ising_2D::Flip()
     n_th_level = n_th_level%N_spin;
 
     //calculate the energy difference
-    double energy_before_flip = Calc_Single_Site_Energy(i, j);
+    double energy_before_flip = Calc_One_Site_2_Sites_Interaction(i, j) + Calc_One_Site_Single_Site_Energy(i, j);
 
     //flip the spin!
     sites[i][j].spin = 2*n_th_level - (N_spin - 1);
-    double energy_after_flip = Calc_Single_Site_Energy(i, j);
+    double energy_after_flip = Calc_One_Site_2_Sites_Interaction(i, j) + Calc_One_Site_Single_Site_Energy(i, j);
 
     double dE = energy_after_flip - energy_before_flip;
 

@@ -26,7 +26,7 @@ public:
 	//for OpenMP
 	unsigned int num_threads;
 	//Monte Carlo sampling size
-	unsigned long int num_samples;//long long int is definitely enough
+	unsigned long long int num_samples;//long long int is definitely enough
 	//Specs of Ising model
 	double kBT_over_J_min = 2;
 	double kBT_over_J_max = 2.5;
@@ -95,7 +95,8 @@ void Comd_Line_Args::Treat_single_option(const std::string option_flag, const st
 	}
 	else if (option_flag == "--samplingsize=")
 	{
-		num_samples = std::stoi(option_value);
+		double temp = std::stod(option_value);
+		num_samples = (int)(temp + 0.5);
 	}
 	else if (option_flag == "--threads=")
     {
@@ -219,7 +220,7 @@ int main(int argc, char *argv[])
         Ising.Set_Spinors_Neighbours();
         Ising.Calc_Total_Energy();
         //acquire necessary constants
-        const unsigned long int num_samples = args.num_samples;
+        const unsigned long long int num_samples = args.num_samples;
         const double kBT_over_J_min = args.kBT_over_J_min;
         const double kBT_over_J_max = args.kBT_over_J_max;
         const unsigned int num_kBT = args.num_kBT;
@@ -246,17 +247,17 @@ int main(int argc, char *argv[])
 
             Ising.Modify_kBT(current_kBT_over_J);
             //before doing stats, make the configuration more messy
-            for(int i = 0; i < 100; ++i)
-            {
-                Ising.Flip();
-            }
+//            for(int i = 0; i < 100; ++i)
+//            {
+//                Ising.Flip();
+//            }
 
             double temp_energy = 0;
             double moment_1st = 0.0;
             double moment_2nd = 0.0;
             double moment_4th = 0.0;
 
-            for(unsigned long int sample_count = id; sample_count < num_samples; sample_count += num_thrds)
+            for(unsigned long long int sample_count = id; sample_count < num_samples; sample_count += num_thrds)
             {
                 //Flip
                 Ising.Flip();
@@ -276,7 +277,7 @@ int main(int argc, char *argv[])
     outputfile << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl << std::endl;
 
     //output to file
-    outputfile << "scaled T, " << "average Energy, " << "specific heat, " << std::endl;
+    outputfile << "scaled T, " << "average Energy, " << "specific heat, "<< "error of spec heat, " << std::endl;
     double moment_1st, moment_2nd, moment_4th;
     const double total_sites = args.num_samples * args.grid_width * args.grid_height;
     for(unsigned int count_kBT = 0; count_kBT <= args.num_kBT; ++count_kBT)
@@ -289,10 +290,13 @@ int main(int argc, char *argv[])
             moment_4th += moment_4th_all_threads[i][count_kBT];
         }
 
-        moment_1st = moment_1st/total_sites;
-        moment_2nd = moment_2nd/(total_sites*total_sites);
-        moment_2nd = moment_2nd - moment_1st*moment_1st;
-        moment_4th = moment_4th/pow(total_sites, 4.0);
+        moment_1st = moment_1st/args.num_samples;
+        moment_2nd = moment_2nd/args.num_samples;
+        moment_4th = moment_4th/args.num_samples;
+        moment_4th = sqrt(moment_4th - moment_2nd*moment_2nd)/(args.grid_width * args.grid_height);
+        moment_2nd = (moment_2nd - moment_1st*moment_1st)/(args.grid_width * args.grid_height);
+
+
 
         outputfile << args.kBT_over_J_min + count_kBT*(args.kBT_over_J_max - args.kBT_over_J_min)/args.num_kBT << ", " << moment_1st << ", " << moment_2nd << std::endl;
     }
