@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
     assert(args.num_threads>0 && args.num_threads<=omp_get_max_threads() && "# of Threads out of range!\n" );
 
     //create output file name with time stamp, to avoid being covered
-    std::string filename = "stats ";
+    std::string filename = "stats_";
     {
         time_t t = time(0);   // get time now
         struct tm * now = localtime( & t );
@@ -213,6 +213,9 @@ int main(int argc, char *argv[])
         //get omp configurations and choose a random number
         const unsigned int id = omp_get_thread_num();
         const unsigned int num_thrds = omp_get_num_threads();
+
+        int avoid_cache_problem[32];
+
         Deng::RandNumGen::LCG64 rand_this_thrd(seed + id*218459);
         //set up Ising model
         //notice Ising_2D has an pointer member linking to the RNG
@@ -272,6 +275,9 @@ int main(int argc, char *argv[])
             moment_2nd_all_threads[id][count_kBT] = moment_2nd;
             moment_4th_all_threads[id][count_kBT] = moment_4th;
         }
+		
+		if(id == 1)
+			std::cout << "Finished kBT=" << current_kBT_over_J << std::endl;
     }
     std::cout << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl;
     outputfile << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl << std::endl;
