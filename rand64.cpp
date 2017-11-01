@@ -3,7 +3,6 @@
 
 using namespace Deng::RandNumGen;
 
-unsigned long long int LCG64::x;
 double LCG64::drand64()
 {
     x = 6364136223846793005ll * x + (long long int) 1;

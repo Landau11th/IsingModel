@@ -27,7 +27,8 @@ namespace Deng
         {
         protected:
             //use static if hope all generator of type LCG64 share the same x!!!
-            static unsigned long long int x;
+            //avoid using static! It may cause racing condition in parallel
+            unsigned long long int x;
             //non-static member suits multi-thread
             //unsigned long long int x;
         public:
@@ -37,17 +38,6 @@ namespace Deng
             virtual void srand64(int seed) override;
         };
 
-        class LCG64_MP : public LCG64
-        {
-        protected:
-            //use static if hope all generator of type LCG64 share the same x!!!
-            //static unsigned long long int x;
-            //non-static member suits multi-thread
-            unsigned long long int x;
-        public:
-            //require the user to call constructor explicitly to initialize the seed
-            using LCG64::LCG64;
-        };
     }
 }
 
