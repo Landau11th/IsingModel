@@ -210,11 +210,12 @@ int main(int argc, char *argv[])
 
     #pragma omp parallel num_threads(args.num_threads)
     {
+        //may help improve the false sharing?
+        //int avoid_cache_problem[32];
+
         //get omp configurations and choose a random number
         const unsigned int id = omp_get_thread_num();
         const unsigned int num_thrds = omp_get_num_threads();
-
-        int avoid_cache_problem[32];
 
         Deng::RandNumGen::LCG64 rand_this_thrd(seed + id*218459);
         //set up Ising model
@@ -249,7 +250,7 @@ int main(int argc, char *argv[])
 
 
             Ising.Modify_kBT(current_kBT_over_J);
-            //before doing stats, make the configuration more messy
+//            //before doing stats, make the configuration more messy
 //            for(int i = 0; i < 100; ++i)
 //            {
 //                Ising.Flip();
@@ -274,10 +275,13 @@ int main(int argc, char *argv[])
             moment_1st_all_threads[id][count_kBT] = moment_1st;
             moment_2nd_all_threads[id][count_kBT] = moment_2nd;
             moment_4th_all_threads[id][count_kBT] = moment_4th;
+
+
+            if(id == 0)
+                std::cout << "Finished kBT=" << current_kBT_over_J << std::endl;
         }
-		
-		if(id == 1)
-			std::cout << "Finished kBT=" << current_kBT_over_J << std::endl;
+
+
     }
     std::cout << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl;
     outputfile << "Simulation costs " << omp_get_wtime() - start_time << "s" << std::endl << std::endl;
@@ -308,7 +312,7 @@ int main(int argc, char *argv[])
     }
     //2.269185314213 for square lattice
 
-    std::cout << "Statistics costs" << omp_get_wtime() - start_time << "s" << std::endl;
+    std::cout << "With statistics costs " << omp_get_wtime() - start_time << "s" << std::endl;
 
 
     return 0;
